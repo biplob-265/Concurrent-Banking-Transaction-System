@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "Account": {
+      "title": "Account",
+      "description": "User bank account information",
+      "type": "object",
+      "properties": {
+        "accountId": { "type": "string", "description": "Unique account identifier" },
+        "holderName": { "type": "string", "description": "Name of the account holder" },
+        "balance": { "type": "number", "description": "Current balance" },
+        "version": { "type": "integer", "description": "Version for optimistic locking" }
+      },
+      "required": ["accountId", "holderName", "balance", "version"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Record of a banking transaction",
+      "type": "object",
+      "properties": {
+        "transactionId": { "type": "string" },
+        "accountId": { "type": "string" },
+        "type": { "type": "string", "enum": ["deposit", "withdraw", "transfer"] },
+        "amount": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["success", "failed"] },
+        "targetAccountId": { "type": "string" }
+      },
+      "required": ["transactionId", "accountId", "type", "amount", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "/accounts/{accountId}": {
+      "schema": { "$ref": "Account" },
+      "description": "Collection of bank accounts"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "Transaction" },
+      "description": "History of all transactions"
+    }
+  }
+}

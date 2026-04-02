@@ -1,0 +1,5 @@
+{
+  "name": "Concurrent Banking Transaction System",
+  "description": "A production-ready full-stack banking system featuring optimistic concurrency control, real-time updates via Socket.io, and robust transaction management.",
+  "requestFramePermissions": []
+}
