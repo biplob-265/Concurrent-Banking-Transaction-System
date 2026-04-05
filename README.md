@@ -65,3 +65,4 @@ k6 run load-test.js
 2. Set the build command: `npm run build`
 3. Set the start command: `npm start`
 4. Ensure `NODE_ENV=production` is set in environment variables.
+5. local run url: https://aistudio.google.com/apps/8cbb1596-cb89-4af0-9c5c-548b859fec8c?fullscreenApplet=true&showPreview=true&showAssistant=true
