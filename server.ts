@@ -54,6 +54,11 @@ async function startServer() {
     res.json(Array.from(accounts.values()));
   });
 
+  // Get all transactions
+  app.get('/api/transactions', (req, res) => {
+    res.json(transactions.slice().reverse()); // Return latest first
+  });
+
   // Transaction Schema
   const TransactionSchema = z.object({
     accountId: z.string(),

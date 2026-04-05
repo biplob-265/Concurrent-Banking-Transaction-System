@@ -32,6 +32,7 @@ interface Transaction {
 
 export default function App() {
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [targetAccount, setTargetAccount] = useState<string>('');
@@ -45,13 +46,14 @@ export default function App() {
     setSocket(newSocket);
 
     fetchAccounts();
+    fetchTransactions();
 
     newSocket.on('balance:updated', ({ accountId, balance }: { accountId: string; balance: number }) => {
       setAccounts(prev => prev.map(acc => acc.accountId === accountId ? { ...acc, balance } : acc));
     });
 
     newSocket.on('transaction:created', (txn: Transaction) => {
-      console.log('New transaction:', txn);
+      setTransactions(prev => [txn, ...prev]);
     });
 
     return () => {
@@ -69,6 +71,16 @@ export default function App() {
       }
     } catch (err) {
       console.error('Failed to fetch accounts', err);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const res = await fetch('/api/transactions');
+      const data = await res.json();
+      setTransactions(data);
+    } catch (err) {
+      console.error('Failed to fetch transactions', err);
     }
   };
 
@@ -250,6 +262,91 @@ export default function App() {
                   )}
                 </AnimatePresence>
               </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Transaction History */}
+        <div className="mt-8">
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <History className="w-5 h-5 text-indigo-600" />
+                Transaction History
+              </h2>
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-md">
+                {transactions.length} Total
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+                    <th className="px-6 py-4 border-b border-slate-100">ID</th>
+                    <th className="px-6 py-4 border-b border-slate-100">Type</th>
+                    <th className="px-6 py-4 border-b border-slate-100">Account</th>
+                    <th className="px-6 py-4 border-b border-slate-100">Amount</th>
+                    <th className="px-6 py-4 border-b border-slate-100">Status</th>
+                    <th className="px-6 py-4 border-b border-slate-100">Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  <AnimatePresence initial={false}>
+                    {transactions.length > 0 ? (
+                      transactions.map((txn) => (
+                        <motion.tr
+                          key={txn.transactionId}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
+                          <td className="px-6 py-4 text-xs font-mono text-slate-400">{txn.transactionId}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter ${
+                              txn.type === 'deposit' ? 'bg-emerald-50 text-emerald-600' :
+                              txn.type === 'withdraw' ? 'bg-amber-50 text-amber-600' :
+                              'bg-blue-50 text-blue-600'
+                            }`}>
+                              {txn.type === 'deposit' && <ArrowDownLeft className="w-3 h-3" />}
+                              {txn.type === 'withdraw' && <ArrowUpRight className="w-3 h-3" />}
+                              {txn.type === 'transfer' && <ArrowLeftRight className="w-3 h-3" />}
+                              {txn.type}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                            {txn.accountId}
+                            {txn.targetAccountId && (
+                              <span className="text-slate-300 mx-1">→ {txn.targetAccountId}</span>
+                            )}
+                          </td>
+                          <td className={`px-6 py-4 text-sm font-bold ${
+                            txn.type === 'deposit' ? 'text-emerald-600' : 'text-slate-900'
+                          }`}>
+                            {txn.type === 'deposit' ? '+' : '-'}${txn.amount.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                              txn.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            }`}>
+                              {txn.status === 'success' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                              {txn.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-400">
+                            {new Date(txn.timestamp).toLocaleTimeString()}
+                          </td>
+                        </motion.tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-sm italic">
+                          No transactions found
+                        </td>
+                      </tr>
+                    )}
+                  </AnimatePresence>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
