@@ -65,4 +65,3 @@ k6 run load-test.js
 2. Set the build command: `npm run build`
 3. Set the start command: `npm start`
 4. Ensure `NODE_ENV=production` is set in environment variables.
-5. local run 
